@@ -1,0 +1,34 @@
+{
+  "name": "jarvis-desktop",
+  "version": "1.0.0",
+  "description": "Jarvis HUD assistant — desktop app (Electron)",
+  "main": "main.js",
+  "author": "Kris",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder"
+  },
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.kris.jarvis",
+    "productName": "Jarvis",
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer/**/*"
+    ],
+    "win": {
+      "target": "portable"
+    },
+    "mac": {
+      "target": "dmg"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
+  }
+}
