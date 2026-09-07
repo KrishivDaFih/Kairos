@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>JARVIS — Orb</title>
+<style>
+  :root{
+    --bg: #060a10;
+    --cyan: #4fd3f5;
+    --cyan-dim: #1d5c6e;
+    --cyan-glow: rgba(79, 211, 245, 0.55);
+    --text-dim: #7fa6b3;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(ellipse at 50% 0%, #0a1622 0%, #060a10 55%, #030507 100%);
+    font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    overflow: hidden;
+  }
+
+  .screen {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ---------- TOP BAR ---------- */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 32px;
+    border-bottom: 1px solid rgba(79, 211, 245, 0.18);
+    background: linear-gradient(180deg, rgba(10,20,30,0.6), rgba(10,20,30,0));
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .brand-ring {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 3px solid var(--cyan);
+    box-shadow: 0 0 10px var(--cyan-glow), inset 0 0 6px var(--cyan-glow);
+    position: relative;
+  }
+  .brand-ring::after{
+    content:"";
+    position:absolute;
+    inset: 8px;
+    border-radius: 50%;
+    background: var(--cyan);
+    box-shadow: 0 0 8px var(--cyan);
+    opacity: 0.9;
+  }
+
+  .brand-name {
+    font-size: 22px;
+    letter-spacing: 6px;
+    font-weight: 500;
+    color: #eaf6fb;
+  }
+
+  .clock-block {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+  }
+  .clock-time {
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--cyan);
+    letter-spacing: 1px;
+  }
+  .clock-time small{
+    font-size: 13px;
+    font-weight: 500;
+    margin-left: 4px;
+    color: var(--text-dim);
+  }
+  .clock-date {
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+
+  .status-icons {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+  }
+  .status-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+  .status-item svg { width: 20px; height: 20px; stroke: var(--cyan); fill: none; }
+
+  /* ---------- ORB ---------- */
+  .orb-stage {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .orb-wrap {
+    position: relative;
+    width: 340px;
+    height: 340px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid rgba(79, 211, 245, 0.25);
+  }
+  .ring.r1 { width: 100%; height: 100%; animation: spin 30s linear infinite; }
+  .ring.r2 { width: 80%; height: 80%; border-style: dashed; animation: spin 22s linear infinite reverse; }
+  .ring.r3 { width: 62%; height: 62%; border-color: rgba(79,211,245,0.4); animation: pulse 3.5s ease-in-out infinite; }
+
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  @keyframes pulse {
+    0%, 100% { opacity: 0.35; transform: scale(1); }
+    50% { opacity: 0.85; transform: scale(1.04); }
+  }
+
+  .orb-glow {
+    position: absolute;
+    width: 46%;
+    height: 46%;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(79,211,245,0.55) 0%, rgba(79,211,245,0.12) 55%, transparent 75%);
+    filter: blur(4px);
+    animation: pulse 3.5s ease-in-out infinite;
+  }
+
+  .orb-core {
+    position: relative;
+    width: 40%;
+    height: 40%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .orb-core svg {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 0 16px var(--cyan-glow));
+  }
+  .orb-core .reactor-spin {
+    animation: spin 40s linear infinite;
+    transform-origin: 358px 358px;
+  }
+  .orb-core .reactor-spin-rev {
+    animation: spin 26s linear infinite reverse;
+    transform-origin: 358px 358px;
+  }
+  .orb-core .reactor-pulse {
+    animation: pulse 2.4s ease-in-out infinite;
+    transform-origin: 358px 358px;
+  }
+
+  @media (max-width: 700px) {
+    .clock-date, .status-item span { display: none; }
+    .brand-name { font-size: 16px; letter-spacing: 4px; }
+    .orb-wrap { width: 240px; height: 240px; }
+  }
+</style>
+</head>
+<body>
+  <div class="screen">
+
+    <div class="topbar">
+      <div class="brand">
+        <div class="brand-ring"></div>
+        <div class="brand-name">JARVIS</div>
+      </div>
+
+      <div class="clock-block">
+        <div class="clock-time" id="clockTime">--:-- <small id="clockAmPm"></small></div>
+        <div class="clock-date" id="clockDate">—</div>
+      </div>
+
+      <div class="status-icons">
+        <div class="status-item">
+          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 8.5a17 17 0 0 1 20 0"></path>
+            <path d="M5 12a12 12 0 0 1 14 0"></path>
+            <path d="M8.5 15.5a7 7 0 0 1 7 0"></path>
+            <circle cx="12" cy="19" r="1" fill="currentColor" stroke="none"></circle>
+          </svg>
+          <span>Connected</span>
+        </div>
+        <div class="status-item">
+          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="7" width="17" height="10" rx="2"></rect>
+            <line x1="22" y1="10" x2="22" y2="14"></line>
+            <rect x="4" y="9" width="11" height="6" fill="currentColor" stroke="none" opacity="0.6"></rect>
+          </svg>
+          <span>100%</span>
+        </div>
+        <div class="status-item">
+          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+          <span>Settings</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="orb-stage">
+      <div class="orb-wrap">
+        <div class="ring r1"></div>
+        <div class="ring r2"></div>
+        <div class="ring r3"></div>
+        <div class="orb-glow"></div>
+        <div class="orb-core">
+          <svg viewBox="0 0 716 716" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <radialGradient id="coreGlow" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#eafcff"/>
+                <stop offset="45%" stop-color="#7fe6fb"/>
+                <stop offset="100%" stop-color="#1d5c6e" stop-opacity="0"/>
+              </radialGradient>
+            </defs>
+
+            <!-- outer housing ring -->
+            <circle cx="358" cy="358" r="345" fill="none" stroke="#2a6f82" stroke-width="3" opacity="0.6"/>
+            <circle cx="358" cy="358" r="320" fill="none" stroke="#4fd3f5" stroke-width="1.5" opacity="0.35"/>
+
+            <!-- rotating turbine blade ring -->
+            <g class="reactor-spin" fill="#0f2b34" stroke="#4fd3f5" stroke-width="2.5">
+              <polygon points="343.00,143.52 300.76,63.51 415.24,63.51 373.00,143.52" />
+              <polygon points="452.25,164.76 455.67,74.34 554.82,131.59 478.23,179.76" />
+              <polygon points="536.24,237.77 584.41,161.18 641.66,260.33 551.24,263.75" />
+              <polygon points="572.48,343.00 652.49,300.76 652.49,415.24 572.48,373.00" />
+              <polygon points="551.24,452.25 641.66,455.67 584.41,554.82 536.24,478.23" />
+              <polygon points="478.23,536.24 554.82,584.41 455.67,641.66 452.25,551.24" />
+              <polygon points="373.00,572.48 415.24,652.49 300.76,652.49 343.00,572.48" />
+              <polygon points="263.75,551.24 260.33,641.66 161.18,584.41 237.77,536.24" />
+              <polygon points="179.76,478.23 131.59,554.82 74.34,455.67 164.76,452.25" />
+              <polygon points="143.52,373.00 63.51,415.24 63.51,300.76 143.52,343.00" />
+              <polygon points="164.76,263.75 74.34,260.33 131.59,161.18 179.76,237.77" />
+              <polygon points="237.77,179.76 161.18,131.59 260.33,74.34 263.75,164.76" />
+            </g>
+
+            <!-- inner counter-rotating ring -->
+            <circle class="reactor-spin-rev" cx="358" cy="358" r="215" fill="none" stroke="#4fd3f5" stroke-width="2" stroke-dasharray="10 14" opacity="0.7"/>
+
+            <!-- hexagon housing -->
+            <polygon points="208.00,358.00 283.00,228.10 433.00,228.10 508.00,358.00 433.00,487.90 283.00,487.90"
+                     fill="#081b21" stroke="#4fd3f5" stroke-width="3"/>
+
+            <!-- glowing core -->
+            <circle class="reactor-pulse" cx="358" cy="358" r="150" fill="url(#coreGlow)"/>
+
+            <!-- tri-blade core -->
+            <g fill="#eafcff" stroke="#bdf3ff" stroke-width="2">
+              <polygon points="358.00,328.00 266.07,280.87 325.51,268.73 358.00,298.00 390.49,268.73 449.93,280.87" />
+              <polygon points="383.98,373.00 470.76,316.96 451.56,374.50 409.96,388.00 419.06,430.77 378.84,476.18" />
+              <polygon points="332.02,373.00 337.16,476.18 296.94,430.77 306.04,388.00 264.44,374.50 245.24,316.96" />
+            </g>
+
+            <circle cx="358" cy="358" r="26" fill="#ffffff"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+<script>
+  function pad(n){ return n.toString().padStart(2,'0'); }
+  function updateClock(){
+    const now = new Date();
+    let h = now.getHours();
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12; if (h === 0) h = 12;
+    document.getElementById('clockTime').innerHTML = `${pad(h)}:${pad(now.getMinutes())} <small>${ampm}</small>`;
+    const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    document.getElementById('clockDate').textContent = `${days[now.getDay()]}, ${pad(now.getDate())} ${months[now.getMonth()]} ${now.getFullYear()}`;
+  }
+  updateClock();
+  setInterval(updateClock, 1000 * 30);
+</script>
+</body>
+</html>
