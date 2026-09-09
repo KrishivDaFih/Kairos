@@ -1,7 +1,7 @@
 {
-  "name": "jarvis-desktop",
-  "version": "1.0.0",
-  "description": "Jarvis HUD assistant — desktop app (Electron)",
+  "name": "kairos-desktop",
+  "version": "1.2.0",
+  "description": "Kairos — multi-provider HUD assistant with wake word, hotkey, PC control, file uploads, connectors, and persistent chat history",
   "main": "main.js",
   "author": "Kris",
   "license": "MIT",
@@ -14,15 +14,31 @@
     "electron-builder": "^24.13.3"
   },
   "build": {
-    "appId": "com.kris.jarvis",
-    "productName": "Jarvis",
+    "appId": "com.kris.kairos",
+    "productName": "Kairos",
     "files": [
       "main.js",
       "preload.js",
       "renderer/**/*"
     ],
     "win": {
-      "target": "portable"
+      "target": "nsis",
+      "icon": "build/icon.ico",
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Kairos",
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "installerHeaderIcon": "build/icon.ico",
+      "installerHeader": "build/installerHeader.bmp",
+      "installerSidebar": "build/installerSidebar.bmp",
+      "uninstallerSidebar": "build/installerSidebar.bmp"
     },
     "mac": {
       "target": "dmg"

@@ -1,92 +1,112 @@
-# Jarvis — Desktop App
+# Kairos — Desktop Assistant (v1.2.0)
 
-A desktop version of the Jarvis HUD assistant, built with Electron. Same orb UI,
-voice in/out, and transcript log as the web version — but running as a real
-`.exe`/app on your machine instead of inside a browser tab.
+Multi-provider HUD assistant: Anthropic, OpenAI, or Groq. Wake word, global
+hotkey, computer control, file attachments, custom connectors, and
+persistent chat history.
 
-## 1. One-time setup
-
-You need [Node.js](https://nodejs.org) installed (the LTS version is fine).
-Check with:
-
-```
-node -v
-```
-
-Then, inside this folder:
+## 1. Run from source
 
 ```
 npm install
-```
-
-This downloads Electron itself (~150–200MB the first time — it's a full
-Chromium + Node runtime bundled into your app, which is why it's a bigger
-download than a normal npm package).
-
-## 2. Run it
-
-```
 npm start
 ```
 
-A window titled "JARVIS" opens. The **first time**, it'll prompt you for an
-Anthropic API key — click the "Settings" icon (top-right) any time to add or
-change it.
+## 2. Or run the installer
 
-### Getting an API key
+`Kairos-Setup-1.2.0.exe` is a real Windows installer (NSIS) — it walks you
+through an install wizard, lets you pick the install folder, and adds a
+**Start Menu entry, a Desktop shortcut, and an uninstaller** listed in
+"Add or Remove Programs". Unsigned, so SmartScreen will still warn once:
+**More info → Run anyway**.
 
-This app talks to the real Anthropic API directly, so — unlike the browser
-artifact version — it needs your own key:
+The installer itself is now styled to match the app: a generated app icon
+(a small cyan reactor/orb mark), a branded header banner across the top of
+each wizard page, and a full-height welcome/finish sidebar — same dark
+navy + cyan palette as the HUD. All three live in `build/` as
+`icon.ico`, `installerHeader.bmp` (150×57), and `installerSidebar.bmp`
+(164×314) — those exact pixel dimensions are NSIS's fixed slots for these
+images, so if you regenerate them, keep the same size.
 
-1. Go to [console.anthropic.com](https://console.anthropic.com/settings/keys)
-2. Create a key
-3. Paste it into Jarvis's Settings panel
+`build/gen_assets.py` (Python + Pillow) is the script that drew these —
+rerun it if you want to tweak the palette, wordmark, or add a proper
+multi-layer vector icon later instead of the programmatically-drawn one.
 
-Note this uses **pay-as-you-go API billing**, separate from a claude.ai
-subscription. Check current pricing on Anthropic's site before heavy use.
-The key is saved only in a local config file in your OS's app-data folder
-(never sent anywhere except directly to `api.anthropic.com` with each
-request) — it isn't bundled if you share the app folder with someone else.
+## 3. What's new since 1.0.1
 
-## 3. Package it into a standalone app (optional)
+**PC control no longer confirms most actions — with two exceptions.**
+You asked for it to stop asking permission, and for everything except two
+tools, it now does: opening an app/URL, clipboard, screenshots, volume,
+and screen lock all run **instantly**, no dialog, when "Allow Kairos to
+control this computer" is on.
 
-If you want a double-clickable `.exe` (Windows), `.dmg` (Mac), or `.AppImage`
-(Linux) that doesn't need `npm start`:
+The two exceptions are **`run_command`** (raw shell access) and calling a
+**connector** — these still always show a confirmation dialog, regardless
+of the "ask before each action" setting. My reasoning: those two aren't
+"one specific action" the way opening Notepad is — `run_command` can do
+literally anything a terminal can, and a connector call can hit an
+external account using credentials you've stored. I didn't think it was
+right to make those silent by default. If you disagree, it's a one-line
+change: open `main.js`, find `const ALWAYS_CONFIRM = new Set(['run_command'])`
+near `executeTool`, and remove `run_command` from that set (and drop the
+`|| name.startsWith('connector_')` condition on the line just below it if
+you want connectors silent too). I'm flagging exactly where rather than
+just doing it, since silently removing the last confirmation on the two
+most open-ended tools isn't something I want to do without you seeing it
+first.
+
+**File attachments.** A paperclip button next to the mic lets you attach
+one file per message — text/code files get read and included inline,
+images (PNG/JPG/GIF/WebP, up to 5MB) get sent as real vision input on
+Anthropic and OpenAI. Groq's OpenAI-compatible endpoint accepts the same
+image format, but whether it actually *works* depends on whether your
+selected Groq model supports vision — check their model list.
+
+**Connectors.** Settings → Connectors → add a name, description, HTTP
+method, URL, and optional headers. Kairos gets a tool it can call with a
+JSON payload; whatever the endpoint returns comes back as the result. This
+is a generic webhook bridge — wire it to Zapier, Make, Home Assistant, or
+anything else that takes an HTTP call. There's no OAuth flow here, just
+raw HTTP with headers you supply (e.g. `Authorization: Bearer ...`),
+so treat the URL/headers fields like you would any place you'd paste a
+secret.
+
+**Persistent chat history.** The hamburger icon (top-left) opens a
+conversation sidebar — every chat auto-saves after each exchange, titled
+from your first message. Click "+ New chat" to start fresh, click any past
+conversation to reload it, or delete ones you don't want kept. Everything
+is stored locally in your app-data folder — nothing is synced anywhere.
+
+## 4. Provider keys
+
+Settings → provider dropdown → paste the matching key. Same three as
+before (Anthropic / OpenAI / Groq), stored separately so switching doesn't
+erase the others.
+
+## 5. Package your own exe
 
 ```
 npm run dist
 ```
 
-This uses `electron-builder` and drops the packaged app in `dist/`. On
-Windows it produces a portable `.exe` — no installer, just run it. First
-build can take a few minutes, and building a Windows `.exe` from a
-non-Windows machine may need extra setup (Wine); building on the target OS
-itself is the reliable path.
-
-## Notes / limitations
-
-- **Voice input** uses Chromium's built-in speech recognition, which needs
-  an internet connection regardless of platform. It works in Electron the
-  same way it does in Chrome.
-- **Voice output** uses your OS's text-to-speech voices via
-  `speechSynthesis` — quality depends on what voices Windows/macOS/Linux has
-  installed.
-- Jarvis can chat, reason, draft, and plan — it can't browse the web, run
-  code, or control your PC. That's by design in the system prompt; wiring
-  up real actions (opening apps, reading files, etc.) is a separate,
-  larger step with real security implications, so it's not included here.
-- Electron apps are heavier than plain web pages (a bundled Chromium), so
-  expect roughly the same footprint as running Chrome — on an older machine
-  this will be noticeably heavier than the browser-artifact version.
+Builds whatever `build.win.target` in `package.json` says — currently
+`nsis`. Building this on the target OS (Windows itself) is still the most
+reliable path; building cross-platform from Linux works here because Wine
+is installed in this build environment, but that's an extra moving part
+you don't need if you build on your own Windows machine.
 
 ## Project structure
 
 ```
-jarvis-desktop/
-├── package.json     — app metadata + build config
-├── main.js          — Electron main process: window, settings storage, API calls
-├── preload.js        — secure bridge between main.js and the UI
+kairos-desktop/
+├── package.json     — app metadata + build config (v1.2.0)
+├── main.js          — window, settings, all provider calls, tool execution, connectors, history storage
+├── preload.js       — secure bridge between main.js and the UI
 ├── renderer/
-│   └── index.html    — the HUD UI (orb, chat, settings) — all styles/JS inline
+│   └── index.html   — HUD/chat UI, settings modal, attachments, history sidebar
+├── build/
+│   ├── icon.ico             — app icon (used for the exe, taskbar, shortcuts)
+│   ├── installerHeader.bmp  — 150×57 banner shown on each installer page
+│   ├── installerSidebar.bmp — 164×314 image on the welcome/finish pages
+│   └── gen_assets.py        — regenerates the three images above
 └── README.md
 ```

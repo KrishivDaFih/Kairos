@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>JARVIS — Orb</title>
+<title>KAIROS</title>
 <style>
   :root{
     --bg: #060a10;
@@ -10,432 +10,233 @@
     --cyan-dim: #1d5c6e;
     --cyan-glow: rgba(79, 211, 245, 0.55);
     --text-dim: #7fa6b3;
+    --danger: #f5734f;
   }
-
   * { box-sizing: border-box; }
-
   html, body {
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100%;
+    margin: 0; padding: 0; width: 100%; height: 100%;
     background: radial-gradient(ellipse at 50% 0%, #0a1622 0%, #060a10 55%, #030507 100%);
     font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
     overflow: hidden;
   }
-
-  .screen {
-    width: 100%;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-  }
+  .screen { width: 100%; height: 100vh; display: flex; flex-direction: column; }
 
   /* ---------- TOP BAR ---------- */
   .topbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 18px 32px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 28px;
     border-bottom: 1px solid rgba(79, 211, 245, 0.18);
     background: linear-gradient(180deg, rgba(10,20,30,0.6), rgba(10,20,30,0));
+    flex-shrink: 0;
   }
-
-  .brand {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-  }
-
+  .brand { display: flex; align-items: center; gap: 12px; }
   .brand-ring {
-    width: 34px;
-    height: 34px;
-    border-radius: 50%;
+    width: 30px; height: 30px; border-radius: 50%;
     border: 3px solid var(--cyan);
     box-shadow: 0 0 10px var(--cyan-glow), inset 0 0 6px var(--cyan-glow);
     position: relative;
   }
   .brand-ring::after{
-    content:"";
-    position:absolute;
-    inset: 8px;
-    border-radius: 50%;
-    background: var(--cyan);
-    box-shadow: 0 0 8px var(--cyan);
-    opacity: 0.9;
+    content:""; position:absolute; inset: 7px; border-radius: 50%;
+    background: var(--cyan); box-shadow: 0 0 8px var(--cyan); opacity: 0.9;
   }
+  .brand-name { font-size: 19px; letter-spacing: 5px; font-weight: 500; color: #eaf6fb; }
+  .clock-block { display: flex; align-items: baseline; gap: 12px; }
+  .clock-time { font-size: 22px; font-weight: 600; color: var(--cyan); letter-spacing: 1px; }
+  .clock-time small{ font-size: 12px; font-weight: 500; margin-left: 4px; color: var(--text-dim); }
+  .clock-date { font-size: 12px; color: var(--text-dim); }
+  .status-icons { display: flex; align-items: center; gap: 22px; }
+  .status-item { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10.5px; color: var(--text-dim); }
+  .status-item svg { width: 18px; height: 18px; stroke: var(--cyan); fill: none; }
+  .status-item.clickable { cursor: pointer; }
+  .status-item.clickable:hover { color: var(--cyan); }
 
-  .brand-name {
-    font-size: 22px;
-    letter-spacing: 6px;
-    font-weight: 500;
-    color: #eaf6fb;
-  }
+  /* ---------- STAGE ---------- */
+  .stage { flex: 1; position: relative; overflow: hidden; }
 
-  .clock-block {
-    display: flex;
-    align-items: baseline;
-    gap: 14px;
-  }
-  .clock-time {
-    font-size: 26px;
-    font-weight: 600;
-    color: var(--cyan);
-    letter-spacing: 1px;
-  }
-  .clock-time small{
-    font-size: 13px;
-    font-weight: 500;
-    margin-left: 4px;
-    color: var(--text-dim);
-  }
-  .clock-date {
-    font-size: 13px;
-    color: var(--text-dim);
-  }
-
-  .status-icons {
-    display: flex;
-    align-items: center;
-    gap: 28px;
-  }
-  .status-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    font-size: 11px;
-    color: var(--text-dim);
-  }
-  .status-item svg { width: 20px; height: 20px; stroke: var(--cyan); fill: none; }
-
-  /* ---------- ORB ---------- */
-  .orb-stage {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-  }
-
+  /* ---------- ORB (hero position by default) ---------- */
   .orb-wrap {
-    position: relative;
-    width: 340px;
-    height: 340px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .ring {
     position: absolute;
-    border-radius: 50%;
-    border: 1px solid rgba(79, 211, 245, 0.25);
+    left: 50%; top: 50%; transform: translate(-50%, -50%);
+    width: 320px; height: 320px;
+    display: flex; align-items: center; justify-content: center;
+    transition: left 0.6s cubic-bezier(.4,0,.2,1), top 0.6s cubic-bezier(.4,0,.2,1),
+                width 0.6s cubic-bezier(.4,0,.2,1), height 0.6s cubic-bezier(.4,0,.2,1),
+                transform 0.6s cubic-bezier(.4,0,.2,1);
+    z-index: 5;
   }
+  .stage.chat-mode .orb-wrap {
+    left: 34px; top: 26px; transform: translate(0,0);
+    width: 64px; height: 64px;
+  }
+  .stage.chat-mode .orb-wrap .ring.r1,
+  .stage.chat-mode .orb-wrap .ring.r2 { opacity: 0.35; }
+
+  .ring { position: absolute; border-radius: 50%; border: 1px solid rgba(79, 211, 245, 0.25); }
   .ring.r1 { width: 100%; height: 100%; animation: spin 30s linear infinite; }
   .ring.r2 { width: 80%; height: 80%; border-style: dashed; animation: spin 22s linear infinite reverse; }
   .ring.r3 { width: 62%; height: 62%; border-color: rgba(79,211,245,0.4); animation: pulse 3.5s ease-in-out infinite; }
-
   @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-  @keyframes pulse {
-    0%, 100% { opacity: 0.35; transform: scale(1); }
-    50% { opacity: 0.85; transform: scale(1.04); }
-  }
+  @keyframes pulse { 0%, 100% { opacity: 0.35; transform: scale(1); } 50% { opacity: 0.85; transform: scale(1.04); } }
 
   .orb-glow {
-    position: absolute;
-    width: 46%;
-    height: 46%;
-    border-radius: 50%;
+    position: absolute; width: 46%; height: 46%; border-radius: 50%;
     background: radial-gradient(circle, rgba(79,211,245,0.55) 0%, rgba(79,211,245,0.12) 55%, transparent 75%);
-    filter: blur(4px);
-    animation: pulse 3.5s ease-in-out infinite;
+    filter: blur(4px); animation: pulse 3.5s ease-in-out infinite;
   }
+  .orb-core { position: relative; width: 40%; height: 40%; display: flex; align-items: center; justify-content: center; }
+  .orb-core svg { width: 100%; height: 100%; filter: drop-shadow(0 0 16px var(--cyan-glow)); }
+  .orb-core .reactor-spin { animation: spin 40s linear infinite; transform-origin: 358px 358px; }
+  .orb-core .reactor-spin-rev { animation: spin 26s linear infinite reverse; transform-origin: 358px 358px; }
+  .orb-core .reactor-pulse { animation: pulse 2.4s ease-in-out infinite; transform-origin: 358px 358px; }
 
-  .orb-core {
-    position: relative;
-    width: 40%;
-    height: 40%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .orb-core svg {
-    width: 100%;
-    height: 100%;
-    filter: drop-shadow(0 0 16px var(--cyan-glow));
-  }
-  .orb-core .reactor-spin {
-    animation: spin 40s linear infinite;
-    transform-origin: 358px 358px;
-  }
-  .orb-core .reactor-spin-rev {
-    animation: spin 26s linear infinite reverse;
-    transform-origin: 358px 358px;
-  }
-  .orb-core .reactor-pulse {
-    animation: pulse 2.4s ease-in-out infinite;
-    transform-origin: 358px 358px;
-  }
-
-  /* ---------- ORB STATE MODULATION ---------- */
-  /* idle = base animation speeds already defined above. Other states retune
-     the same rings/glow/core rather than introducing a new accent color. */
-
-  .orb-wrap.listening .ring.r3,
-  .orb-wrap.listening .orb-glow { animation-duration: 1.1s; }
-  .orb-wrap.listening .ring.r1 { animation-duration: 10s; }
-  .orb-wrap.listening .ring.r2 { animation-duration: 8s; }
-
-  .orb-wrap.thinking .ring.r1 { animation-duration: 4s; }
-  .orb-wrap.thinking .ring.r2 { animation-duration: 3.2s; }
-  .orb-wrap.thinking .ring.r3,
-  .orb-wrap.thinking .orb-glow { animation-duration: 0.7s; }
+  .orb-wrap.listening .ring.r3, .orb-wrap.listening .orb-glow { animation-duration: 1.1s; }
+  .orb-wrap.thinking .ring.r3, .orb-wrap.thinking .orb-glow { animation-duration: 0.7s; }
   .orb-wrap.thinking .orb-core .reactor-spin { animation-duration: 6s; }
-  .orb-wrap.thinking .orb-core .reactor-spin-rev { animation-duration: 4s; }
+  .orb-wrap.speaking .ring.r3, .orb-wrap.speaking .orb-glow { animation: speakPulse 0.42s ease-in-out infinite; }
+  @keyframes speakPulse { 0%, 100% { opacity: 0.5; transform: scale(1); } 50% { opacity: 1; transform: scale(1.1); } }
 
-  .orb-wrap.speaking .ring.r3,
-  .orb-wrap.speaking .orb-glow { animation: speakPulse 0.42s ease-in-out infinite; }
-
-  @keyframes speakPulse {
-    0%, 100% { opacity: 0.5; transform: scale(1); }
-    50% { opacity: 1; transform: scale(1.09); }
+  /* ---------- HERO TAGLINE ---------- */
+  .hero-tagline {
+    position: absolute; left: 50%; bottom: 30%; transform: translateX(-50%);
+    color: var(--text-dim); font-size: 14px; letter-spacing: 0.3px; text-align: center;
+    width: 80%; transition: opacity 0.3s ease;
   }
+  .stage.chat-mode .hero-tagline { opacity: 0; pointer-events: none; }
 
-  /* ---------- SUBTITLE READOUT ---------- */
-  .subtitle {
-    position: absolute;
-    bottom: 96px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: min(560px, 84%);
-    text-align: center;
-    color: #eafcff;
-    font-size: 15px;
-    line-height: 1.55;
-    letter-spacing: 0.2px;
-    text-shadow: 0 0 12px rgba(79,211,245,0.35);
-    opacity: 0;
-    transition: opacity 0.4s ease;
-    pointer-events: none;
-    max-height: 140px;
+  /* ---------- CHAT MESSAGES ---------- */
+  .messages {
+    position: absolute; inset: 0;
+    padding: 110px 8% 108px;
     overflow-y: auto;
+    display: flex; flex-direction: column; gap: 14px;
+    opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
   }
-  .subtitle.visible { opacity: 1; pointer-events: auto; }
-  .subtitle .label {
-    display: block;
-    font-size: 11px;
-    color: var(--cyan);
-    letter-spacing: 3px;
-    margin-bottom: 6px;
-    opacity: 0.8;
+  .stage.chat-mode .messages { opacity: 1; pointer-events: auto; }
+  .messages::-webkit-scrollbar { width: 6px; }
+  .messages::-webkit-scrollbar-thumb { background: rgba(79,211,245,0.25); border-radius: 3px; }
+
+  .bubble { max-width: 68%; padding: 11px 15px; border-radius: 14px; font-size: 14px; line-height: 1.55; white-space: pre-wrap; word-wrap: break-word; }
+  .bubble.user { align-self: flex-end; background: rgba(79, 211, 245, 0.16); border: 1px solid rgba(79,211,245,0.35); color: #eafcff; border-bottom-right-radius: 3px; }
+  .bubble.kairos { align-self: flex-start; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: #dff3f8; border-bottom-left-radius: 3px; }
+  .bubble.system-action { align-self: center; background: transparent; border: 1px dashed rgba(79,211,245,0.3); color: var(--text-dim); font-size: 11.5px; letter-spacing: 0.3px; padding: 5px 12px; }
+  .bubble.error { border-color: rgba(245,115,79,0.4); color: #ffb9a3; }
+  .attachment-tag {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11px; color: var(--cyan); background: rgba(79,211,245,0.1);
+    border: 1px solid rgba(79,211,245,0.3); border-radius: 10px; padding: 2px 8px; margin-bottom: 6px;
   }
 
   /* ---------- INPUT BAR ---------- */
   .input-bar {
-    position: absolute;
-    bottom: 26px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: min(620px, 90%);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 12px 10px 18px;
-    background: rgba(10, 20, 28, 0.65);
-    border: 1px solid rgba(79, 211, 245, 0.35);
-    border-radius: 4px;
-    box-shadow: 0 0 24px rgba(79, 211, 245, 0.12), inset 0 0 20px rgba(79,211,245,0.04);
-    backdrop-filter: blur(6px);
+    position: absolute; bottom: 22px; left: 50%; transform: translateX(-50%);
+    width: min(680px, 88%);
+    display: flex; flex-direction: column; gap: 6px;
+    z-index: 10;
   }
-  .input-bar::before,
-  .input-bar::after {
-    content: "";
-    position: absolute;
-    top: -1px; bottom: -1px;
-    width: 10px;
-    border-color: var(--cyan);
-    opacity: 0.7;
+  .attachment-chip {
+    display: none; align-items: center; gap: 8px;
+    background: rgba(14,22,30,0.9); border: 1px solid rgba(79,211,245,0.3); border-radius: 16px;
+    padding: 5px 12px; font-size: 12px; color: #dff3f8; align-self: flex-start;
   }
-  .input-bar::before { left: -1px; border-left: 2px solid var(--cyan); border-top: 2px solid var(--cyan); border-bottom: 2px solid var(--cyan); }
-  .input-bar::after { right: -1px; border-right: 2px solid var(--cyan); border-top: 2px solid var(--cyan); border-bottom: 2px solid var(--cyan); }
-
-  .input-bar input {
-    flex: 1;
-    background: transparent;
-    border: none;
-    outline: none;
-    color: #eafcff;
-    font-size: 14px;
-    font-family: inherit;
-    letter-spacing: 0.2px;
+  .attachment-chip.visible { display: flex; }
+  .attachment-chip .remove { cursor: pointer; color: var(--text-dim); font-weight: bold; }
+  .attachment-chip .remove:hover { color: var(--danger); }
+  .input-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 8px 8px 14px;
+    background: rgba(14, 22, 30, 0.85);
+    border: 1px solid rgba(79, 211, 245, 0.28);
+    border-radius: 28px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.35);
+    backdrop-filter: blur(8px);
   }
-  .input-bar input::placeholder { color: var(--text-dim); }
-
+  .input-row input {
+    flex: 1; background: transparent; border: none; outline: none;
+    color: #eafcff; font-size: 14px; font-family: inherit;
+  }
+  .input-row input::placeholder { color: var(--text-dim); }
   .icon-btn {
-    width: 32px;
-    height: 32px;
-    flex-shrink: 0;
-    border-radius: 50%;
-    border: 1px solid rgba(79,211,245,0.4);
-    background: rgba(79,211,245,0.06);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
+    width: 34px; height: 34px; flex-shrink: 0; border-radius: 50%;
+    border: 1px solid rgba(79,211,245,0.4); background: rgba(79,211,245,0.06);
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
     transition: background 0.2s ease, box-shadow 0.2s ease;
   }
   .icon-btn:hover { background: rgba(79,211,245,0.16); }
   .icon-btn svg { width: 16px; height: 16px; stroke: var(--cyan); fill: none; }
-  .icon-btn.active {
-    background: rgba(79,211,245,0.3);
-    box-shadow: 0 0 14px var(--cyan-glow);
-  }
+  .icon-btn.active { background: rgba(79,211,245,0.3); box-shadow: 0 0 14px var(--cyan-glow); }
   .icon-btn.send svg { fill: var(--cyan); stroke: none; }
 
-  .status-item.clickable { cursor: pointer; }
-  .status-item.clickable:hover { color: var(--cyan); }
-  .status-item.clickable svg { transition: opacity 0.2s ease; }
-
-  /* ---------- TRANSCRIPT LOG PANEL ---------- */
-  .log-panel {
-    position: absolute;
-    top: 0;
-    right: -340px;
-    width: 320px;
-    height: 100%;
-    background: rgba(6, 12, 18, 0.92);
-    border-left: 1px solid rgba(79, 211, 245, 0.25);
-    backdrop-filter: blur(8px);
-    transition: right 0.35s ease;
-    display: flex;
-    flex-direction: column;
-    z-index: 20;
+  /* ---------- HISTORY PANEL ---------- */
+  .history-panel {
+    position: absolute; top: 0; left: -320px; width: 300px; height: 100%;
+    background: rgba(6, 12, 18, 0.94); border-right: 1px solid rgba(79, 211, 245, 0.25);
+    backdrop-filter: blur(8px); transition: left 0.3s ease; display: flex; flex-direction: column; z-index: 25;
   }
-  .log-panel.open { right: 0; }
-  .log-header {
-    padding: 18px 20px 12px;
-    font-size: 12px;
-    letter-spacing: 3px;
-    color: var(--cyan);
-    border-bottom: 1px solid rgba(79,211,245,0.18);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  .history-panel.open { left: 0; }
+  .history-header { padding: 16px 18px 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(79,211,245,0.18); }
+  .history-header span { font-size: 12px; letter-spacing: 2px; color: var(--cyan); }
+  .history-header .close-history { cursor: pointer; color: var(--text-dim); font-size: 16px; }
+  .new-chat-btn {
+    margin: 12px 16px; padding: 8px 12px; text-align: center; font-size: 12.5px;
+    color: var(--cyan); border: 1px solid rgba(79,211,245,0.4); border-radius: 6px; cursor: pointer;
   }
-  .log-header .close-log { cursor: pointer; color: var(--text-dim); font-size: 16px; line-height: 1; }
-  .log-header .close-log:hover { color: var(--cyan); }
-  .log-body {
-    flex: 1;
-    overflow-y: auto;
-    padding: 16px 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
+  .new-chat-btn:hover { background: rgba(79,211,245,0.08); }
+  .history-list { flex: 1; overflow-y: auto; padding: 0 10px 10px; }
+  .history-item {
+    padding: 10px 10px; border-radius: 6px; cursor: pointer; margin-bottom: 4px;
+    display: flex; justify-content: space-between; align-items: center; gap: 6px;
   }
-  .log-entry { font-size: 13px; line-height: 1.5; }
-  .log-entry .who {
-    font-size: 10px;
-    letter-spacing: 2px;
-    display: block;
-    margin-bottom: 3px;
-  }
-  .log-entry.user .who { color: var(--text-dim); }
-  .log-entry.user { color: #cfe9f0; }
-  .log-entry.jarvis .who { color: var(--cyan); }
-  .log-entry.jarvis { color: #eafcff; }
-  .log-body::-webkit-scrollbar { width: 5px; }
-  .log-body::-webkit-scrollbar-thumb { background: rgba(79,211,245,0.3); border-radius: 3px; }
+  .history-item:hover { background: rgba(79,211,245,0.08); }
+  .history-item .title { font-size: 12.5px; color: #dff3f8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .history-item .del { color: var(--text-dim); font-size: 13px; cursor: pointer; flex-shrink: 0; }
+  .history-item .del:hover { color: var(--danger); }
 
   /* ---------- SETTINGS MODAL ---------- */
-  .settings-overlay {
-    position: absolute;
-    inset: 0;
-    background: rgba(3, 6, 9, 0.72);
-    backdrop-filter: blur(4px);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 30;
-  }
+  .settings-overlay { position: absolute; inset: 0; background: rgba(3, 6, 9, 0.78); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 30; }
   .settings-overlay.open { display: flex; }
-
-  .settings-modal {
-    width: min(420px, 88%);
-    background: rgba(10, 20, 28, 0.95);
-    border: 1px solid rgba(79, 211, 245, 0.4);
-    border-radius: 4px;
-    box-shadow: 0 0 40px rgba(79, 211, 245, 0.15);
-    padding: 24px 26px 20px;
+  .settings-modal { width: min(480px, 90%); max-height: 84vh; overflow-y: auto; background: rgba(10, 20, 28, 0.97); border: 1px solid rgba(79, 211, 245, 0.4); border-radius: 6px; box-shadow: 0 0 40px rgba(79, 211, 245, 0.15); padding: 22px 24px 18px; }
+  .settings-modal::-webkit-scrollbar { width: 5px; }
+  .settings-modal::-webkit-scrollbar-thumb { background: rgba(79,211,245,0.3); border-radius: 3px; }
+  .settings-title { font-size: 13px; letter-spacing: 3px; color: var(--cyan); margin-bottom: 16px; }
+  .settings-section { margin-bottom: 18px; padding-bottom: 16px; border-bottom: 1px solid rgba(79,211,245,0.12); }
+  .settings-section:last-of-type { border-bottom: none; }
+  .settings-section-title { font-size: 11px; letter-spacing: 1.5px; color: var(--cyan); margin-bottom: 10px; opacity: 0.85; }
+  .settings-label { display: block; font-size: 11px; letter-spacing: 1px; color: var(--text-dim); margin-bottom: 6px; }
+  .settings-input, .settings-select, .settings-textarea {
+    width: 100%; background: rgba(79, 211, 245, 0.06); border: 1px solid rgba(79, 211, 245, 0.3);
+    border-radius: 3px; color: #eafcff; font-size: 13px; padding: 9px 10px; margin-bottom: 12px;
+    outline: none; font-family: inherit;
   }
-  .settings-title {
-    font-size: 13px;
-    letter-spacing: 3px;
-    color: var(--cyan);
-    margin-bottom: 18px;
-  }
-  .settings-label {
-    display: block;
-    font-size: 11px;
-    letter-spacing: 1px;
-    color: var(--text-dim);
-    margin-bottom: 6px;
-  }
-  .settings-input {
-    width: 100%;
-    background: rgba(79, 211, 245, 0.06);
-    border: 1px solid rgba(79, 211, 245, 0.3);
-    border-radius: 3px;
-    color: #eafcff;
-    font-size: 13px;
-    padding: 9px 10px;
-    margin-bottom: 14px;
-    outline: none;
-    font-family: inherit;
-  }
-  .settings-input:focus { border-color: var(--cyan); }
-  .settings-hint {
-    font-size: 11.5px;
-    color: var(--text-dim);
-    line-height: 1.5;
-    margin: -6px 0 16px;
-  }
+  .settings-textarea { resize: vertical; min-height: 50px; font-family: monospace; font-size: 12px; }
+  .settings-input:focus, .settings-select:focus, .settings-textarea:focus { border-color: var(--cyan); }
+  .settings-hint { font-size: 11px; color: var(--text-dim); line-height: 1.5; margin: -6px 0 12px; }
   .settings-hint a { color: var(--cyan); }
-  .settings-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 4px;
-  }
-  .settings-btn {
-    background: var(--cyan);
-    color: #04141a;
-    border: none;
-    border-radius: 3px;
-    padding: 8px 16px;
-    font-size: 12.5px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    cursor: pointer;
-  }
-  .settings-btn.ghost {
-    background: transparent;
-    color: var(--text-dim);
-    border: 1px solid rgba(79,211,245,0.25);
-  }
-  .settings-status {
-    margin-top: 12px;
-    font-size: 11.5px;
-    color: var(--cyan);
-    min-height: 14px;
-  }
+  .provider-fields { display: none; }
+  .provider-fields.active { display: block; }
+  .checkbox-row { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .checkbox-row input { accent-color: var(--cyan); width: 15px; height: 15px; }
+  .checkbox-row label { font-size: 12.5px; color: #dff3f8; }
+  .warning-box { background: rgba(245, 115, 79, 0.08); border: 1px solid rgba(245, 115, 79, 0.3); border-radius: 4px; padding: 9px 11px; font-size: 11.5px; color: #ffcfc0; line-height: 1.5; margin-bottom: 12px; }
+  .settings-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 4px; }
+  .settings-btn { background: var(--cyan); color: #04141a; border: none; border-radius: 3px; padding: 8px 16px; font-size: 12.5px; font-weight: 600; letter-spacing: 0.5px; cursor: pointer; }
+  .settings-btn.ghost { background: transparent; color: var(--text-dim); border: 1px solid rgba(79,211,245,0.25); }
+  .settings-btn.small { padding: 6px 12px; font-size: 11.5px; }
+  .settings-status { margin-top: 10px; font-size: 11.5px; color: var(--cyan); min-height: 14px; }
+  .connector-item { border: 1px solid rgba(79,211,245,0.2); border-radius: 5px; padding: 8px 10px; margin-bottom: 8px; font-size: 12px; }
+  .connector-item .row1 { display: flex; justify-content: space-between; align-items: center; }
+  .connector-item .name { color: #eafcff; font-weight: 600; }
+  .connector-item .desc { color: var(--text-dim); font-size: 11px; margin-top: 2px; }
+  .connector-item .del { color: var(--text-dim); cursor: pointer; }
+  .connector-item .del:hover { color: var(--danger); }
+  .connector-form { display: none; margin-top: 8px; }
+  .connector-form.open { display: block; }
 
   @media (max-width: 700px) {
     .clock-date, .status-item span { display: none; }
-    .brand-name { font-size: 16px; letter-spacing: 4px; }
-    .orb-wrap { width: 240px; height: 240px; }
-    .log-panel { width: 86%; right: -100%; }
-    .subtitle { bottom: 86px; font-size: 13px; }
+    .brand-name { font-size: 15px; letter-spacing: 3px; }
+    .bubble { max-width: 84%; }
+    .history-panel { width: 84%; left: -100%; }
   }
 </style>
 </head>
@@ -444,63 +245,118 @@
 
     <div class="topbar">
       <div class="brand">
+        <div class="status-item clickable" id="historyBtn" style="margin-right:6px;">
+          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </div>
         <div class="brand-ring"></div>
-        <div class="brand-name">JARVIS</div>
+        <div class="brand-name">KAIROS</div>
       </div>
-
       <div class="clock-block">
         <div class="clock-time" id="clockTime">--:-- <small id="clockAmPm"></small></div>
         <div class="clock-date" id="clockDate">—</div>
       </div>
-
       <div class="status-icons">
-        <div class="status-item">
-          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M2 8.5a17 17 0 0 1 20 0"></path>
-            <path d="M5 12a12 12 0 0 1 14 0"></path>
-            <path d="M8.5 15.5a7 7 0 0 1 7 0"></path>
-            <circle cx="12" cy="19" r="1" fill="currentColor" stroke="none"></circle>
-          </svg>
-          <span>Connected</span>
-        </div>
-        <div class="status-item">
-          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="2" y="7" width="17" height="10" rx="2"></rect>
-            <line x1="22" y1="10" x2="22" y2="14"></line>
-            <rect x="4" y="9" width="11" height="6" fill="currentColor" stroke="none" opacity="0.6"></rect>
-          </svg>
-          <span>100%</span>
-        </div>
-        <div class="status-item clickable" id="logToggle">
-          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M4 4h16v12H7l-3 3z"></path>
-            <line x1="8" y1="9" x2="16" y2="9"></line>
-            <line x1="8" y1="13" x2="13" y2="13"></line>
-          </svg>
-          <span>Log</span>
+        <div class="status-item" id="controlIndicator">
+          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+          <span id="controlIndicatorLabel">PC Control: Off</span>
         </div>
         <div class="status-item clickable" id="settingsBtn">
-          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="3"></circle>
-            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-          </svg>
+          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
           <span>Settings</span>
         </div>
       </div>
     </div>
 
-    <div class="orb-stage">
+    <div class="stage" id="stage">
+
+      <div class="history-panel" id="historyPanel">
+        <div class="history-header"><span>CONVERSATIONS</span><span class="close-history" id="closeHistory">&times;</span></div>
+        <div class="new-chat-btn" id="newChatBtn">+ New chat</div>
+        <div class="history-list" id="historyList"></div>
+      </div>
+
       <div class="settings-overlay" id="settingsOverlay">
         <div class="settings-modal">
-          <div class="settings-title">JARVIS SETTINGS</div>
-          <label class="settings-label" for="apiKeyInput">Anthropic API key</label>
-          <input type="password" id="apiKeyInput" class="settings-input" placeholder="sk-ant-...">
-          <p class="settings-hint">
-            Stored only on this machine, in your user data folder. Get a key at
-            <a href="#" id="consoleLink">console.anthropic.com</a>.
-          </p>
-          <label class="settings-label" for="modelInput">Model</label>
-          <input type="text" id="modelInput" class="settings-input" placeholder="claude-sonnet-5">
+          <div class="settings-title">KAIROS SETTINGS</div>
+
+          <div class="settings-section">
+            <div class="settings-section-title">PROVIDER</div>
+            <select id="providerSelect" class="settings-select">
+              <option value="anthropic">Anthropic (Claude)</option>
+              <option value="openai">OpenAI</option>
+              <option value="groq">Groq</option>
+            </select>
+            <div class="provider-fields" data-provider="anthropic">
+              <label class="settings-label">Anthropic API key</label>
+              <input type="password" id="key-anthropic" class="settings-input" placeholder="sk-ant-...">
+              <label class="settings-label">Model</label>
+              <input type="text" id="model-anthropic" class="settings-input" placeholder="claude-sonnet-5">
+              <p class="settings-hint">Get a key at <a href="#" data-link="https://console.anthropic.com/settings/keys">console.anthropic.com</a></p>
+            </div>
+            <div class="provider-fields" data-provider="openai">
+              <label class="settings-label">OpenAI API key</label>
+              <input type="password" id="key-openai" class="settings-input" placeholder="sk-...">
+              <label class="settings-label">Model</label>
+              <input type="text" id="model-openai" class="settings-input" placeholder="gpt-4o">
+              <p class="settings-hint">Get a key at <a href="#" data-link="https://platform.openai.com/api-keys">platform.openai.com</a></p>
+            </div>
+            <div class="provider-fields" data-provider="groq">
+              <label class="settings-label">Groq API key</label>
+              <input type="password" id="key-groq" class="settings-input" placeholder="gsk_...">
+              <label class="settings-label">Model</label>
+              <input type="text" id="model-groq" class="settings-input" placeholder="llama-3.3-70b-versatile">
+              <p class="settings-hint">Get a key at <a href="#" data-link="https://console.groq.com/keys">console.groq.com</a></p>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-section-title">VOICE</div>
+            <label class="settings-label" for="wakeWordInput">Wake word</label>
+            <input type="text" id="wakeWordInput" class="settings-input" placeholder="kairos">
+            <div class="checkbox-row">
+              <input type="checkbox" id="alwaysListeningInput">
+              <label for="alwaysListeningInput">Always listen for the wake word</label>
+            </div>
+            <label class="settings-label" for="shortcutInput">Keyboard shortcut</label>
+            <input type="text" id="shortcutInput" class="settings-input" placeholder="CommandOrControl+Shift+K">
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-section-title">COMPUTER CONTROL</div>
+            <div class="checkbox-row">
+              <input type="checkbox" id="controlEnabledInput">
+              <label for="controlEnabledInput">Allow Kairos to control this computer</label>
+            </div>
+            <div class="checkbox-row">
+              <input type="checkbox" id="confirmActionsInput">
+              <label for="confirmActionsInput">Ask for confirmation before each action</label>
+            </div>
+            <div class="warning-box" id="controlWarning"></div>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-section-title">CONNECTORS</div>
+            <p class="settings-hint" style="margin-top:0;">Wire Kairos up to your own webhooks/APIs (Zapier, Make, a home server, anything). Kairos gets a tool it can call with a JSON payload; the raw response comes back as the result.</p>
+            <div id="connectorList"></div>
+            <button class="settings-btn ghost small" id="showConnectorForm" type="button">+ Add connector</button>
+            <div class="connector-form" id="connectorForm">
+              <label class="settings-label">Name</label>
+              <input type="text" id="conn-name" class="settings-input" placeholder="Home Assistant">
+              <label class="settings-label">Description (tells Kairos what it's for)</label>
+              <input type="text" id="conn-desc" class="settings-input" placeholder="Control smart home devices">
+              <label class="settings-label">Method</label>
+              <select id="conn-method" class="settings-select">
+                <option value="POST">POST</option>
+                <option value="GET">GET</option>
+              </select>
+              <label class="settings-label">URL</label>
+              <input type="text" id="conn-url" class="settings-input" placeholder="https://your-webhook-url">
+              <label class="settings-label">Headers (one per line, "Key: Value")</label>
+              <textarea id="conn-headers" class="settings-textarea" placeholder="Authorization: Bearer ..."></textarea>
+              <button class="settings-btn small" id="saveConnectorBtn" type="button">Add</button>
+            </div>
+          </div>
+
           <div class="settings-actions">
             <button class="settings-btn ghost" id="settingsCancel">Close</button>
             <button class="settings-btn" id="settingsSave">Save</button>
@@ -509,18 +365,9 @@
         </div>
       </div>
 
-      <div class="log-panel" id="logPanel">
-        <div class="log-header">
-          <span>TRANSCRIPT</span>
-          <span class="close-log" id="closeLog">&times;</span>
-        </div>
-        <div class="log-body" id="logBody"></div>
-      </div>
+      <div class="hero-tagline" id="heroTagline">Ask <span id="taglineWakeWord">Kairos</span> anything — type below, click the mic, attach a file, or say the wake word.</div>
 
-      <div class="subtitle" id="subtitle">
-        <span class="label" id="subtitleLabel">JARVIS</span>
-        <span id="subtitleText"></span>
-      </div>
+      <div class="messages" id="messages"></div>
 
       <div class="orb-wrap" id="orbWrap">
         <div class="ring r1"></div>
@@ -536,12 +383,8 @@
                 <stop offset="100%" stop-color="#1d5c6e" stop-opacity="0"/>
               </radialGradient>
             </defs>
-
-            <!-- outer housing ring -->
             <circle cx="358" cy="358" r="345" fill="none" stroke="#2a6f82" stroke-width="3" opacity="0.6"/>
             <circle cx="358" cy="358" r="320" fill="none" stroke="#4fd3f5" stroke-width="1.5" opacity="0.35"/>
-
-            <!-- rotating turbine blade ring -->
             <g class="reactor-spin" fill="#0f2b34" stroke="#4fd3f5" stroke-width="2.5">
               <polygon points="343.00,143.52 300.76,63.51 415.24,63.51 373.00,143.52" />
               <polygon points="452.25,164.76 455.67,74.34 554.82,131.59 478.23,179.76" />
@@ -556,46 +399,39 @@
               <polygon points="164.76,263.75 74.34,260.33 131.59,161.18 179.76,237.77" />
               <polygon points="237.77,179.76 161.18,131.59 260.33,74.34 263.75,164.76" />
             </g>
-
-            <!-- inner counter-rotating ring -->
             <circle class="reactor-spin-rev" cx="358" cy="358" r="215" fill="none" stroke="#4fd3f5" stroke-width="2" stroke-dasharray="10 14" opacity="0.7"/>
-
-            <!-- hexagon housing -->
-            <polygon points="208.00,358.00 283.00,228.10 433.00,228.10 508.00,358.00 433.00,487.90 283.00,487.90"
-                     fill="#081b21" stroke="#4fd3f5" stroke-width="3"/>
-
-            <!-- glowing core -->
+            <polygon points="208.00,358.00 283.00,228.10 433.00,228.10 508.00,358.00 433.00,487.90 283.00,487.90" fill="#081b21" stroke="#4fd3f5" stroke-width="3"/>
             <circle class="reactor-pulse" cx="358" cy="358" r="150" fill="url(#coreGlow)"/>
-
-            <!-- tri-blade core -->
             <g fill="#eafcff" stroke="#bdf3ff" stroke-width="2">
               <polygon points="358.00,328.00 266.07,280.87 325.51,268.73 358.00,298.00 390.49,268.73 449.93,280.87" />
               <polygon points="383.98,373.00 470.76,316.96 451.56,374.50 409.96,388.00 419.06,430.77 378.84,476.18" />
               <polygon points="332.02,373.00 337.16,476.18 296.94,430.77 306.04,388.00 264.44,374.50 245.24,316.96" />
             </g>
-
             <circle cx="358" cy="358" r="26" fill="#ffffff"/>
           </svg>
         </div>
       </div>
 
       <div class="input-bar">
-        <div class="icon-btn" id="micBtn" title="Voice input">
-          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="9" y="2" width="6" height="12" rx="3"></rect>
-            <path d="M5 10a7 7 0 0 0 14 0"></path>
-            <line x1="12" y1="19" x2="12" y2="22"></line>
-          </svg>
+        <div class="attachment-chip" id="attachmentChip">
+          <span id="attachmentLabel"></span>
+          <span class="remove" id="attachmentRemove">&times;</span>
         </div>
-        <input type="text" id="textInput" placeholder="Speak, or type a request for Jarvis…" autocomplete="off">
-        <div class="icon-btn send" id="sendBtn" title="Send">
-          <svg viewBox="0 0 24 24">
-            <path d="M3 11l18-8-8 18-2-8-8-2z"></path>
-          </svg>
+        <div class="input-row">
+          <div class="icon-btn" id="attachBtn" title="Attach a file">
+            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+          </div>
+          <div class="icon-btn" id="micBtn" title="Voice input">
+            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"></rect><path d="M5 10a7 7 0 0 0 14 0"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>
+          </div>
+          <input type="text" id="textInput" placeholder="Message Kairos…" autocomplete="off">
+          <div class="icon-btn send" id="sendBtn" title="Send">
+            <svg viewBox="0 0 24 24"><path d="M3 11l18-8-8 18-2-8-8-2z"></path></svg>
+          </div>
         </div>
       </div>
-    </div>
 
+    </div>
   </div>
 
 <script>
@@ -614,58 +450,84 @@
   setInterval(updateClock, 1000 * 30);
 
   /* =====================================================================
-     JARVIS — conversation engine
-     The system prompt and the actual Anthropic API call live in main.js
-     (the Node/Electron main process) so the API key never touches this
-     renderer's JS or the network tab. This file only talks to main.js
-     through the window.jarvis bridge exposed by preload.js.
+     KAIROS — conversation engine
      ===================================================================== */
 
+  const stage = document.getElementById('stage');
   const orbWrap = document.getElementById('orbWrap');
-  const subtitle = document.getElementById('subtitle');
-  const subtitleLabel = document.getElementById('subtitleLabel');
-  const subtitleText = document.getElementById('subtitleText');
+  const messagesEl = document.getElementById('messages');
   const textInput = document.getElementById('textInput');
   const sendBtn = document.getElementById('sendBtn');
   const micBtn = document.getElementById('micBtn');
-  const logToggle = document.getElementById('logToggle');
-  const closeLog = document.getElementById('closeLog');
-  const logPanel = document.getElementById('logPanel');
-  const logBody = document.getElementById('logBody');
+  const attachBtn = document.getElementById('attachBtn');
+  const attachmentChip = document.getElementById('attachmentChip');
+  const attachmentLabel = document.getElementById('attachmentLabel');
+  const attachmentRemove = document.getElementById('attachmentRemove');
+  const controlIndicatorLabel = document.getElementById('controlIndicatorLabel');
 
-  let history = []; // {role, content}
+  let history = [];
   let busy = false;
-  let subtitleTimer = null;
+  let inChatMode = false;
+  let pendingAttachment = null; // { kind, name, text? , mediaType?, data? }
+  let currentConversationId = null;
+
+  function enterChatMode() {
+    if (inChatMode) return;
+    inChatMode = true;
+    stage.classList.add('chat-mode');
+  }
+  function exitChatMode() {
+    inChatMode = false;
+    stage.classList.remove('chat-mode');
+  }
 
   function setOrbState(state) {
     orbWrap.classList.remove('listening', 'thinking', 'speaking');
     if (state) orbWrap.classList.add(state);
   }
 
-  function showSubtitle(label, text, autoHide) {
-    subtitleLabel.textContent = label;
-    subtitleText.textContent = text;
-    subtitle.classList.add('visible');
-    clearTimeout(subtitleTimer);
-    if (autoHide) {
-      subtitleTimer = setTimeout(() => subtitle.classList.remove('visible'), autoHide);
-    }
+  function bubbleTextOf(content) {
+    if (typeof content === 'string') return content;
+    const t = content.find((b) => b.type === 'text');
+    return t ? t.text : '';
+  }
+  function attachmentTagOf(content) {
+    if (typeof content === 'string') return null;
+    const img = content.find((b) => b.type === 'image');
+    return img ? '\uD83D\uDCCE image attached' : null;
   }
 
-  function logMessage(who, text) {
-    const entry = document.createElement('div');
-    entry.className = 'log-entry ' + who;
-    const whoLabel = document.createElement('span');
-    whoLabel.className = 'who';
-    whoLabel.textContent = who === 'user' ? 'YOU' : 'JARVIS';
-    entry.appendChild(whoLabel);
-    entry.appendChild(document.createTextNode(text));
-    logBody.appendChild(entry);
-    logBody.scrollTop = logBody.scrollHeight;
+  function addBubble(role, content) {
+    const el = document.createElement('div');
+    el.className = 'bubble ' + role;
+    const tag = attachmentTagOf(content);
+    if (tag) {
+      const tagEl = document.createElement('div');
+      tagEl.className = 'attachment-tag';
+      tagEl.textContent = tag;
+      el.appendChild(tagEl);
+      el.appendChild(document.createElement('br'));
+    }
+    el.appendChild(document.createTextNode(bubbleTextOf(content)));
+    messagesEl.appendChild(el);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  function addActionNote(text) {
+    const el = document.createElement('div');
+    el.className = 'bubble system-action';
+    el.textContent = '\u2699 ' + text;
+    messagesEl.appendChild(el);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  function renderFullHistory() {
+    messagesEl.innerHTML = '';
+    history.forEach((h) => addBubble(h.role === 'user' ? 'user' : 'kairos', h.content));
   }
 
   function speak(text) {
-    if (!('speechSynthesis' in window)) return;
+    if (!('speechSynthesis' in window)) { setOrbState(null); return; }
     try {
       window.speechSynthesis.cancel();
       const utter = new SpeechSynthesisUtterance(text);
@@ -675,43 +537,66 @@
       utter.onend = () => setOrbState(null);
       utter.onerror = () => setOrbState(null);
       window.speechSynthesis.speak(utter);
-    } catch (e) { /* speech synthesis unavailable — text-only is fine */ }
+    } catch (e) { setOrbState(null); }
   }
 
-  async function sendToJarvis(userText) {
-    if (!userText || busy) return;
+  async function persistConversation() {
+    if (!history.length) return;
+    const firstUserText = bubbleTextOf(history.find((h) => h.role === 'user')?.content || '') || 'New conversation';
+    const { id } = await window.kairos.saveConversation({
+      id: currentConversationId,
+      title: firstUserText.slice(0, 48),
+      messages: history
+    });
+    currentConversationId = id;
+  }
+
+  function buildUserContent(text) {
+    if (!pendingAttachment) return text;
+    if (pendingAttachment.kind === 'image') {
+      return [{ type: 'text', text: text || '(see attached image)' }, { type: 'image', mediaType: pendingAttachment.mediaType, data: pendingAttachment.data }];
+    }
+    if (pendingAttachment.kind === 'text') {
+      return `${text}\n\n[Attached file: ${pendingAttachment.name}]\n${pendingAttachment.text}`;
+    }
+    return `${text}\n\n[Attached file: ${pendingAttachment.name} — Kairos can't read this file type, only the name was shared.]`;
+  }
+
+  async function sendToKairos(rawText) {
+    const text = (rawText || '').trim();
+    if ((!text && !pendingAttachment) || busy) return;
     busy = true;
+    enterChatMode();
     textInput.value = '';
     textInput.disabled = true;
     sendBtn.style.opacity = '0.5';
 
-    history.push({ role: 'user', content: userText });
-    logMessage('user', userText);
-    showSubtitle('YOU', userText, null);
+    const content = buildUserContent(text);
+    history.push({ role: 'user', content });
+    addBubble('user', content);
+    clearAttachment();
     setOrbState('thinking');
 
     try {
-      const result = await window.jarvis.chat(history);
+      const result = await window.kairos.chat(history);
 
       if (!result.ok) {
-        history.pop(); // don't keep a turn the model never actually saw
-        logMessage('jarvis', result.error);
-        showSubtitle('JARVIS', result.error, 7000);
+        history.pop();
+        addBubble('kairos error', result.error);
         setOrbState(null);
         if (/api key/i.test(result.error)) openSettings();
         return;
       }
 
+      if (result.actions && result.actions.length) result.actions.forEach(addActionNote);
+
       history.push({ role: 'assistant', content: result.text });
-      logMessage('jarvis', result.text);
-      showSubtitle('JARVIS', result.text, 9000);
+      addBubble('kairos', result.text);
       speak(result.text);
-      if (!('speechSynthesis' in window)) setOrbState(null);
+      await persistConversation();
 
     } catch (err) {
-      const failMsg = 'Something went wrong reaching Jarvis. Try again in a moment.';
-      logMessage('jarvis', failMsg);
-      showSubtitle('JARVIS', failMsg, 6000);
+      addBubble('kairos error', 'Something went wrong reaching Kairos. Try again in a moment.');
       setOrbState(null);
     } finally {
       busy = false;
@@ -721,13 +606,85 @@
     }
   }
 
-  sendBtn.addEventListener('click', () => sendToJarvis(textInput.value.trim()));
-  textInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') sendToJarvis(textInput.value.trim());
+  sendBtn.addEventListener('click', () => sendToKairos(textInput.value));
+  textInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendToKairos(textInput.value); });
+
+  /* ---------- attachments ---------- */
+  function clearAttachment() {
+    pendingAttachment = null;
+    attachmentChip.classList.remove('visible');
+  }
+  attachmentRemove.addEventListener('click', clearAttachment);
+  attachBtn.addEventListener('click', async () => {
+    const result = await window.kairos.pickFile();
+    if (!result || result.canceled) return;
+    if (!result.ok) { addActionNote('Could not read that file: ' + (result.error || 'unknown error')); return; }
+    pendingAttachment = result;
+    attachmentLabel.textContent = '\uD83D\uDCCE ' + result.name + (result.kind === 'unsupported' ? ' (unsupported type)' : '');
+    attachmentChip.classList.add('visible');
   });
 
-  logToggle.addEventListener('click', () => logPanel.classList.toggle('open'));
-  closeLog.addEventListener('click', () => logPanel.classList.remove('open'));
+  /* ---------- conversation history panel ---------- */
+  const historyBtn = document.getElementById('historyBtn');
+  const historyPanel = document.getElementById('historyPanel');
+  const closeHistory = document.getElementById('closeHistory');
+  const historyList = document.getElementById('historyList');
+  const newChatBtn = document.getElementById('newChatBtn');
+
+  function timeAgo(ts) {
+    const mins = Math.floor((Date.now() - ts) / 60000);
+    if (mins < 1) return 'just now';
+    if (mins < 60) return mins + 'm ago';
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return hrs + 'h ago';
+    return Math.floor(hrs / 24) + 'd ago';
+  }
+
+  async function refreshHistoryList() {
+    const list = await window.kairos.listConversations();
+    historyList.innerHTML = '';
+    list.forEach((c) => {
+      const item = document.createElement('div');
+      item.className = 'history-item';
+      const title = document.createElement('div');
+      title.className = 'title';
+      title.textContent = c.title;
+      title.title = c.title + ' · ' + timeAgo(c.updatedAt);
+      const del = document.createElement('span');
+      del.className = 'del';
+      del.textContent = '\u2715';
+      del.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        await window.kairos.deleteConversation(c.id);
+        if (c.id === currentConversationId) startNewChat();
+        refreshHistoryList();
+      });
+      item.appendChild(title);
+      item.appendChild(del);
+      item.addEventListener('click', async () => {
+        const conv = await window.kairos.loadConversation(c.id);
+        if (!conv) return;
+        history = conv.messages;
+        currentConversationId = conv.id;
+        renderFullHistory();
+        enterChatMode();
+        historyPanel.classList.remove('open');
+      });
+      historyList.appendChild(item);
+    });
+  }
+
+  function startNewChat() {
+    history = [];
+    currentConversationId = null;
+    messagesEl.innerHTML = '';
+    exitChatMode();
+    clearAttachment();
+  }
+
+  historyBtn.addEventListener('click', async () => { await refreshHistoryList(); historyPanel.classList.add('open'); });
+  closeHistory.addEventListener('click', () => historyPanel.classList.remove('open'));
+  newChatBtn.addEventListener('click', () => { startNewChat(); historyPanel.classList.remove('open'); });
 
   /* ---------- settings modal ---------- */
   const settingsBtn = document.getElementById('settingsBtn');
@@ -735,79 +692,187 @@
   const settingsCancel = document.getElementById('settingsCancel');
   const settingsSave = document.getElementById('settingsSave');
   const settingsStatus = document.getElementById('settingsStatus');
-  const apiKeyInput = document.getElementById('apiKeyInput');
-  const modelInput = document.getElementById('modelInput');
-  const consoleLink = document.getElementById('consoleLink');
+  const providerSelect = document.getElementById('providerSelect');
+  const wakeWordInput = document.getElementById('wakeWordInput');
+  const alwaysListeningInput = document.getElementById('alwaysListeningInput');
+  const shortcutInput = document.getElementById('shortcutInput');
+  const controlEnabledInput = document.getElementById('controlEnabledInput');
+  const confirmActionsInput = document.getElementById('confirmActionsInput');
+  const controlWarning = document.getElementById('controlWarning');
+  const connectorList = document.getElementById('connectorList');
+  const showConnectorForm = document.getElementById('showConnectorForm');
+  const connectorForm = document.getElementById('connectorForm');
+  const saveConnectorBtn = document.getElementById('saveConnectorBtn');
+
+  document.querySelectorAll('[data-link]').forEach((a) => {
+    a.addEventListener('click', (e) => { e.preventDefault(); window.kairos.openExternal(a.dataset.link); });
+  });
+
+  function showProviderFields(provider) {
+    document.querySelectorAll('.provider-fields').forEach((el) => el.classList.toggle('active', el.dataset.provider === provider));
+  }
+  providerSelect.addEventListener('change', () => showProviderFields(providerSelect.value));
+
+  function updateControlWarning() {
+    if (!controlEnabledInput.checked) { controlWarning.textContent = 'Off — Kairos cannot act on your computer at all.'; return; }
+    if (confirmActionsInput.checked) {
+      controlWarning.textContent = 'On, with confirmation — every action shows a dialog and waits for your approval, including the ones below.';
+    } else {
+      controlWarning.textContent = 'On — opening apps/URLs, clipboard, screenshots, volume, and screen lock run instantly with no prompt. Running a raw shell command and calling a connector still always ask first, no matter this setting, since those two are unbounded rather than one specific action.';
+    }
+  }
+  controlEnabledInput.addEventListener('change', updateControlWarning);
+  confirmActionsInput.addEventListener('change', updateControlWarning);
+
+  function renderConnectorList(connectors) {
+    connectorList.innerHTML = '';
+    (connectors || []).forEach((c) => {
+      const item = document.createElement('div');
+      item.className = 'connector-item';
+      item.innerHTML = `<div class="row1"><span class="name">${c.name}</span><span class="del" data-id="${c.id}">\u2715</span></div><div class="desc">${c.description || ''} · ${c.method} ${c.url}</div>`;
+      item.querySelector('.del').addEventListener('click', async () => {
+        const res = await window.kairos.removeConnector(c.id);
+        renderConnectorList(res.connectors);
+      });
+      connectorList.appendChild(item);
+    });
+  }
+
+  showConnectorForm.addEventListener('click', () => connectorForm.classList.toggle('open'));
+  saveConnectorBtn.addEventListener('click', async () => {
+    const name = document.getElementById('conn-name').value.trim();
+    const url = document.getElementById('conn-url').value.trim();
+    if (!name || !url) { settingsStatus.textContent = 'Connector needs at least a name and URL.'; return; }
+    const res = await window.kairos.addConnector({
+      name,
+      description: document.getElementById('conn-desc').value.trim(),
+      method: document.getElementById('conn-method').value,
+      url,
+      headers: document.getElementById('conn-headers').value
+    });
+    renderConnectorList(res.connectors);
+    ['conn-name', 'conn-desc', 'conn-url', 'conn-headers'].forEach((id) => document.getElementById(id).value = '');
+    connectorForm.classList.remove('open');
+  });
 
   async function openSettings() {
-    const current = await window.jarvis.getSettings();
-    apiKeyInput.value = '';
-    apiKeyInput.placeholder = current.hasKey ? '•••••••••••••••••• (already set — leave blank to keep)' : 'sk-ant-...';
-    modelInput.value = current.model || 'claude-sonnet-5';
+    const s = await window.kairos.getSettings();
+    providerSelect.value = s.provider;
+    showProviderFields(s.provider);
+    ['anthropic', 'openai', 'groq'].forEach((p) => {
+      document.getElementById('key-' + p).value = '';
+      document.getElementById('key-' + p).placeholder = s.hasKey[p] ? '•••••••••••••• (set — leave blank to keep)' : 'Paste your API key';
+      document.getElementById('model-' + p).value = s.models[p] || '';
+    });
+    wakeWordInput.value = s.wakeWord || 'kairos';
+    alwaysListeningInput.checked = !!s.alwaysListening;
+    shortcutInput.value = s.shortcut || 'CommandOrControl+Shift+K';
+    controlEnabledInput.checked = !!s.controlEnabled;
+    confirmActionsInput.checked = !!s.confirmActions;
+    renderConnectorList(s.connectors);
+    updateControlWarning();
     settingsStatus.textContent = '';
     settingsOverlay.classList.add('open');
   }
 
+  function applyWakeWordUI(word) { document.getElementById('taglineWakeWord').textContent = word; }
+
   settingsBtn.addEventListener('click', openSettings);
   settingsCancel.addEventListener('click', () => settingsOverlay.classList.remove('open'));
-  consoleLink.addEventListener('click', (e) => {
-    e.preventDefault();
-    window.jarvis.openExternal('https://console.anthropic.com/settings/keys');
-  });
 
   settingsSave.addEventListener('click', async () => {
-    const payload = { model: modelInput.value.trim() };
-    if (apiKeyInput.value.trim()) payload.apiKey = apiKeyInput.value.trim();
-    await window.jarvis.setSettings(payload);
+    const patch = {
+      provider: providerSelect.value,
+      keys: { anthropic: document.getElementById('key-anthropic').value, openai: document.getElementById('key-openai').value, groq: document.getElementById('key-groq').value },
+      models: { anthropic: document.getElementById('model-anthropic').value, openai: document.getElementById('model-openai').value, groq: document.getElementById('model-groq').value },
+      wakeWord: wakeWordInput.value,
+      alwaysListening: alwaysListeningInput.checked,
+      shortcut: shortcutInput.value,
+      controlEnabled: controlEnabledInput.checked,
+      confirmActions: confirmActionsInput.checked
+    };
+    await window.kairos.setSettings(patch);
+    controlIndicatorLabel.textContent = 'PC Control: ' + (patch.controlEnabled ? 'On' : 'Off');
+    applyWakeWordUI(patch.wakeWord || 'kairos');
     settingsStatus.textContent = 'Saved.';
-    setTimeout(() => { settingsOverlay.classList.remove('open'); }, 500);
+    syncListeningMode(patch.alwaysListening, patch.wakeWord || 'kairos');
+    setTimeout(() => settingsOverlay.classList.remove('open'), 500);
   });
 
   (async () => {
-    const current = await window.jarvis.getSettings();
-    if (!current.hasKey) openSettings();
+    const s = await window.kairos.getSettings();
+    controlIndicatorLabel.textContent = 'PC Control: ' + (s.controlEnabled ? 'On' : 'Off');
+    applyWakeWordUI(s.wakeWord || 'kairos');
+    if (!s.hasKey[s.provider]) openSettings();
+    syncListeningMode(s.alwaysListening, s.wakeWord || 'kairos');
   })();
 
   /* ---------- voice input (Web Speech API, Chrome/Edge only) ---------- */
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  let recognizing = false;
   let recognizer = null;
+  let mode = 'idle';
+  let armedForFollowup = false;
+  let currentWakeWord = 'kairos';
+  let wakeModeWanted = false;
 
   if (SpeechRecognition) {
     recognizer = new SpeechRecognition();
-    recognizer.continuous = false;
     recognizer.interimResults = false;
     recognizer.lang = 'en-US';
 
-    recognizer.onstart = () => {
-      recognizing = true;
+    recognizer.onresult = (event) => {
+      const said = event.results[event.results.length - 1][0].transcript.trim();
+      const lower = said.toLowerCase();
+      if (mode === 'manual') { sendToKairos(said); return; }
+      const wIdx = lower.indexOf(currentWakeWord.toLowerCase());
+      if (wIdx !== -1) {
+        const remainder = said.slice(wIdx + currentWakeWord.length).replace(/^[,.\s]+/, '').trim();
+        if (remainder) { sendToKairos(remainder); armedForFollowup = false; }
+        else { armedForFollowup = true; setOrbState('listening'); }
+      } else if (armedForFollowup) {
+        armedForFollowup = false;
+        sendToKairos(said);
+      }
+    };
+    recognizer.onerror = () => { if (mode === 'manual') { micBtn.classList.remove('active'); if (!busy) setOrbState(null); mode = 'idle'; } };
+    recognizer.onend = () => {
+      if (mode === 'manual') {
+        micBtn.classList.remove('active');
+        if (!busy) setOrbState(null);
+        mode = 'idle';
+        if (wakeModeWanted) startWakeMode();
+      } else if (mode === 'wake') {
+        if (wakeModeWanted) { try { recognizer.continuous = true; recognizer.start(); } catch (e) {} }
+        else mode = 'idle';
+      }
+    };
+    micBtn.addEventListener('click', () => {
+      try { recognizer.stop(); } catch (e) {}
+      mode = 'manual';
+      recognizer.continuous = false;
       micBtn.classList.add('active');
       setOrbState('listening');
-      showSubtitle('LISTENING', '…', null);
-    };
-    recognizer.onresult = (event) => {
-      const said = event.results[0][0].transcript;
-      sendToJarvis(said);
-    };
-    recognizer.onerror = () => {
-      recognizing = false;
-      micBtn.classList.remove('active');
-      setOrbState(null);
-      subtitle.classList.remove('visible');
-    };
-    recognizer.onend = () => {
-      recognizing = false;
-      micBtn.classList.remove('active');
-      if (!busy) setOrbState(null);
-    };
-
-    micBtn.addEventListener('click', () => {
-      if (recognizing) { recognizer.stop(); return; }
-      try { recognizer.start(); } catch (e) { /* already running */ }
+      setTimeout(() => { try { recognizer.start(); } catch (e) {} }, 120);
     });
+    window.kairos.onTriggerListen(() => micBtn.click());
   } else {
     micBtn.style.opacity = '0.35';
     micBtn.title = 'Voice input not supported in this browser';
+  }
+
+  function startWakeMode() {
+    if (!recognizer) return;
+    try { mode = 'wake'; recognizer.continuous = true; recognizer.start(); } catch (e) {}
+  }
+  function stopWakeMode() {
+    wakeModeWanted = false;
+    if (mode === 'wake' && recognizer) { try { recognizer.stop(); } catch (e) {} }
+  }
+  function syncListeningMode(alwaysListening, wakeWord) {
+    currentWakeWord = (wakeWord || 'kairos').toLowerCase();
+    if (!recognizer) return;
+    if (alwaysListening) { wakeModeWanted = true; if (mode === 'idle') startWakeMode(); }
+    else stopWakeMode();
   }
 </script>
 </body>
