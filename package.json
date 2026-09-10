@@ -1,6 +1,6 @@
 {
   "name": "kairos-desktop",
-  "version": "1.2.0",
+  "version": "1.4.1",
   "description": "Kairos — multi-provider HUD assistant with wake word, hotkey, PC control, file uploads, connectors, and persistent chat history",
   "main": "main.js",
   "author": "Kris",
